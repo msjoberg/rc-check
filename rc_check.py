@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
+import json
 import os
 import sys
 from datetime import datetime, timezone
@@ -144,6 +145,17 @@ def main(args):
                                     print_msg(p, pre='(', post=')', clip=50)
                                 print_msg(m)
                                 prev_tmid = None
+
+                # FIXME: skip thread messages above? 
+                for t in s['tunread']:
+                    m = rocket.chat_get_message(msg_id=t).json()['message']
+                    print_msg(m)
+                    query = json.dumps({'_updatedAt': {'$gt': {'$date': timestamp}}})
+                    rm = rocket.chat_get_thread_message(tmid=t, tlm=m['tlm'],
+                                                        sort='{"ts": -1}',
+                                                        query=query).json()
+                    for tm in rm['messages']:
+                        print_msg(tm)
 
                 print()
 
